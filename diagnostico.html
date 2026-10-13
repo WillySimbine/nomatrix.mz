@@ -1,0 +1,44 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnóstico grátis | Nomatrix</title><meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="s.css">
+<style>main{max-width:620px;margin:0 auto;padding:90px 20px 60px}.top{position:fixed;top:0;left:0;right:0;z-index:5;background:var(--bg)}.top .w{display:flex;justify-content:space-between;align-items:center;height:56px}
+.pg{height:3px;background:var(--l)}.pg i{display:block;height:100%;width:0;background:var(--r);transition:width .3s}
+.op{display:block;width:100%;text-align:left;background:var(--s);color:var(--t);border:1px solid var(--l);border-radius:10px;padding:14px 16px;font:inherit;margin-top:10px;cursor:pointer;transition:border-color .15s,transform .15s}.op:hover{border-color:var(--r);transform:translateX(3px)}
+input{width:100%;background:var(--s);color:var(--t);border:1px solid var(--l);border-radius:10px;padding:14px;font:inherit;margin:6px 0 14px}input:focus{border-color:var(--r);outline:0}
+label{font-size:.9rem;color:var(--m)}.tag{color:var(--r);font-size:.85rem;margin-bottom:8px}.err{color:var(--r);font-size:.9rem;min-height:1.4em}.fade{animation:grow .35s both;transform-origin:top}</style></head><body>
+<div class="top"><div class="w"><a class="logo" href="index.html">nomatrix<i>.</i></a><a class="l" style="color:var(--m);font-size:.9rem;text-decoration:none" href="index.html">Voltar</a></div><div class="pg"><i id="pb"></i></div></div>
+<main id="app" aria-live="polite"></main>
+<script>
+const WA='258864352542',P=['Marketing','Vendas','Gestão','Processos'],NV=['Arranque','Crescimento','Escala'],SC=['Nunca','Às vezes','Quase sempre','Sempre'];
+const F=[['Quantas pessoas trabalham na empresa, contigo incluído?',['Só eu','2 a 5 pessoas','6 ou mais']],['Quanto a empresa fatura por mês, mais ou menos?',['Menos de 50 mil MT','50 a 200 mil MT','Mais de 200 mil MT']],['Como está montada a equipa?',['Faço tudo sozinho','Equipa pequena, sem chefias','Equipa com chefias']]];
+const S=[['Sei de onde vêm os clientes novos.','Publico ou anuncio com regularidade e com objetivo.','Tenho uma mensagem clara de porque comprar de mim.','Sei quanto custa conquistar cada cliente novo.'],
+['Respondo a quem pergunta o preço no mesmo dia.','Tenho passos definidos do primeiro contacto até fechar.','Faço follow-up com quem não comprou à primeira.','Sei quantos contactos viram venda.'],
+['Sei quanto a empresa ganha e gasta por mês.','Tenho metas mensais escritas.','Separo o dinheiro da empresa do meu.','Reviso os números pelo menos uma vez por mês.'],
+['As tarefas principais estão escritas passo a passo.','A empresa funcionava uns dias sem mim.','Cada pessoa sabe o que é da responsabilidade dela.','Os erros repetidos são corrigidos na raiz.']];
+const Q=[...F.map(([t,o])=>({t,o,k:'f',tag:'A tua empresa'})),...S.flatMap((a,i)=>a.map(t=>({t,o:SC,k:i,tag:P[i]})))];
+const $=document.getElementById('app'),pb=document.getElementById('pb');
+let st={id:localStorage.nx_id||(localStorage.nx_id=crypto.randomUUID()),nome:'',whatsapp:'',a:[],i:0,done:false},tm,db;
+const pil=()=>P.map((_,i)=>{const v=st.a.map((x,j)=>[x,Q[j]]).filter(([x,q])=>q.k===i&&x!=null);return v.length?Math.round((v.reduce((s,[x])=>s+x+1,0)-v.length)/(v.length*3)*100):0});
+const fase=()=>Math.min(2,Math.floor((st.a.slice(0,3).reduce((s,x)=>s+(x||0),0))/2.1));
+const body=e=>JSON.stringify({id:st.id,nome:st.nome,whatsapp:st.whatsapp,estado:e,fase:NV[fase()],pilares:Object.fromEntries(P.map((p,i)=>[p,pil()[i]])),respostas:st.a.map((x,j)=>x==null?null:{p:Q[j].t,r:Q[j].o[x]}).filter(Boolean)});
+const save=(e='progresso',beacon)=>{if(!st.nome)return;if(beacon)return navigator.sendBeacon('/api/guardar',new Blob([body(e)],{type:'text/plain'}));fetch('/api/guardar',{method:'POST',body:body(e),keepalive:true}).catch(()=>{})};
+const idle=()=>{clearTimeout(tm);tm=setTimeout(()=>{if(!st.done)save('saiu')},600000)};
+['click','keydown','input','touchstart'].forEach(v=>addEventListener(v,idle));
+addEventListener('pagehide',()=>{if(!st.done)save('saiu',1)});
+function intro(){pb.style.width='0';$.innerHTML=`<div class="fade"><h1 style="font-size:2rem">Antes de começar</h1><p style="margin:10px 0 22px">Diz-nos quem és. Assim o assessor pode falar contigo com o teu resultado.</p><label for="n">O teu nome</label><input id="n" autocomplete="name" value="${st.nome}"><label for="w">O teu WhatsApp</label><input id="w" type="tel" inputmode="tel" placeholder="84 123 4567" autocomplete="tel" value="${st.whatsapp}"><div class="err" id="e"></div><button class="btn" id="go">Começar o diagnóstico</button></div>`;
+document.getElementById('go').onclick=()=>{const n=document.getElementById('n').value.trim(),w=document.getElementById('w').value.replace(/\D/g,'').replace(/^258/,'');if(n.length<2)return e('Escreve o teu nome.');if(!/^8\d{8}$/.test(w))return e('O WhatsApp tem 9 números e começa por 8.');st.nome=n;st.whatsapp='258'+w;save();idle();ask()};const e=m=>document.getElementById('e').textContent=m}
+function ask(){if(st.i>=Q.length)return result();const q=Q[st.i];pb.style.width=(st.i/Q.length*100)+'%';
+$.innerHTML=`<div class="fade"><div class="tag">${q.tag}, pergunta ${st.i+1} de ${Q.length}</div><h2 style="font-size:1.5rem">${q.t}</h2>${q.o.map((o,j)=>`<button class="op" data-j="${j}">${o}</button>`).join('')}${st.i?'<button class="btn g sm" id="bk" style="margin-top:18px">Voltar</button>':''}</div>`;
+$.querySelectorAll('.op').forEach(b=>b.onclick=()=>{st.a[st.i]=+b.dataset.j;st.i++;clearTimeout(db);db=setTimeout(()=>save(),700);ask()});const k=document.getElementById('bk');if(k)k.onclick=()=>{st.i--;ask()}}
+function result(){st.done=true;clearTimeout(tm);save('completo');pb.style.width='100%';const v=pil(),w=v.indexOf(Math.min(...v)),pk=P[w]+' '+NV[fase()];
+const pts=v.map((x,i)=>{const r=Math.max(x,6)*.8,a=[[0,-1],[1,0],[0,1],[-1,0]][i];return(a[0]*r)+','+(a[1]*r)}).join(' ');
+const msg=encodeURIComponent(`Olá, fiz o diagnóstico da Nomatrix. Ponto fraco: ${P[w]}. Pacote: ${pk}.`);
+$.innerHTML=`<div class="fade"><h1 style="font-size:2rem">${st.nome.split(' ')[0]}, este é o teu resultado</h1>
+<svg viewBox="-110 -110 220 220" width="100%" style="max-width:300px;display:block;margin:14px auto" role="img" aria-label="Gráfico dos 4 pilares"><g fill="none" stroke="#2a2a2d"><polygon points="0,-80 80,0 0,80 -80,0"/><polygon points="0,-40 40,0 0,40 -40,0"/><path d="M0-80V80M-80 0H80"/></g><polygon class="rd" points="${pts}" fill="rgba(255,49,49,.18)" stroke="#ff3131" stroke-width="2"/><g fill="#9b9ba1" font-size="10" text-anchor="middle" font-family="Inter"><text y="-90">Marketing</text><text x="92" y="4">Vendas</text><text y="98">Gestão</text><text x="-92" y="4">Processos</text></g></svg>
+<div style="display:grid;gap:12px">${P.map((p,i)=>`<div>${p}, ${v[i]}%<div class="bar"><i style="width:${v[i]}%;${i===w?'background:var(--r)':''}"></i></div></div>`).join('')}</div>
+<div class="card" style="margin:22px 0"><h3>Ponto mais fraco: ${P[w]}</h3><p>O pacote que encaixa na tua fase é <b style="color:var(--t)">${pk}</b>. Um assessor da Nomatrix fala contigo no WhatsApp com o valor certo para a tua empresa.</p></div>
+<a class="btn" href="https://wa.me/${WA}?text=${msg}">Falar com um assessor da Nomatrix</a></div>`}
+intro();
+</script></body></html>

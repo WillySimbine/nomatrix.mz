@@ -1,0 +1,24 @@
+PUBLICAR A NOMATRIX NO CLOUDFLARE
+
+1. Base de dados (uma vez)
+   npx wrangler d1 create nomatrix
+   npx wrangler d1 execute nomatrix --remote --file=schema.sql
+
+2. Projeto Pages (nesta pasta)
+   npx wrangler pages project create nomatrix
+   npx wrangler pages deploy . --project-name nomatrix
+
+3. No painel Cloudflare, Pages > nomatrix > Settings
+   - Bindings > D1: nome da variavel DB, base nomatrix
+   - Variables and Secrets: TG_TOKEN, TG_CHAT, RESEND_KEY, EMAIL_TO, EMAIL_FROM
+   Depois repete o deploy do passo 2.
+
+4. Telegram: fala com @BotFather, /newbot, copia o token (TG_TOKEN).
+   Manda uma mensagem ao teu bot e abre
+   https://api.telegram.org/bot<TOKEN>/getUpdates para ver o teu chat id (TG_CHAT).
+
+5. Email: cria conta em resend.com, gera a chave (RESEND_KEY).
+   EMAIL_TO = willy.simbine@gmail.com
+   EMAIL_FROM = onboarding@resend.dev (serve para enviar para o email da tua conta Resend)
+
+6. Testa: preenche o diagnostico e sai a meio. Em 10 min (ou ao fechar o separador) chega o PDF.
